@@ -7,7 +7,6 @@ and lesser-known players that may fit these.
 - Furthermore, the early-career statistics of well-established high-performers can be profiles, and the metrics of current
 young players can be compared, to identify players with the potential to grow into high-performing archetypes.
 
----
 
 ### **Data Sources**:
 Primary sources:
@@ -26,7 +25,6 @@ Other resources:
 - [How to extract data from FBref tutorial](https://www.youtube.com/watch?v=fuNQRKSAwWg)
 - [Useful sport analysis Python packages](https://docs.google.com/spreadsheets/d/1LPe8xYduoep9qCrNzBGdJHaHZ8dnmdHNnu7UXZKzawU/edit?gid=1127780030#gid=1127780030)
 
----
 
 ### Project Plan:
 
