@@ -6,11 +6,13 @@ _e.g. Crosses could fall under 'Passing' or 'Chance Creation'_
 
 | Column | Description | Data Type |
 | :--- | :--- | :--- |
+| player_identifier | Unique identifier for the player | Qualitative |
 | Player | Player's name | Qualitative |
 | Nation | Player's nation | Qualitative |
 | Pos | Position | Qualitative |
 | Age | Player's age | Qualitative |
 | Born | Year of birth | Qualitative |
+| Num_Pos | Number of positions played by the player | Count |
 
 ### Team Info
 
@@ -27,6 +29,16 @@ _e.g. Crosses could fall under 'Passing' or 'Chance Creation'_
 | Starts | Matches started | Count |
 | Min | Minutes played | Count |
 | 90s | Minutes played divided by 90 | Count |
+
+### League Playtime
+
+| Column | Description | Data Type |
+| :--- | :--- | :--- |
+| Premier League_pct_mins | Percentage of total minutes played in the Premier League | Percentage |
+| Ligue 1_pct_mins | Percentage of total minutes played in Ligue 1 | Percentage |
+| Bundesliga_pct_mins | Percentage of total minutes played in the Bundesliga | Percentage |
+| Serie A_pct_mins | Percentage of total minutes played in Serie A | Percentage |
+| La Liga_pct_mins | Percentage of total minutes played in La Liga | Percentage |
 
 ### Finishing
 
@@ -108,6 +120,16 @@ _e.g. Crosses could fall under 'Passing' or 'Chance Creation'_
 | PasCrs | Crosses | Count |
 | Crs | Crosses | Count |
 | RecProg | Completed passes that move the ball towards the opponent's goal at least 10 yards from its furthest point in the last six passes, or any completed pass into the penalty area | Count |
+| PasGround | Ground passes (passes that travel along the ground) | Count |
+| PasLow | Low passes (passes that travel above the ground but below shoulder level) | Count |
+| PasHigh | High passes (passes that travel above shoulder level) | Count |
+| PaswLeft | Left-footed passes attempted | Count |
+| PaswRight | Right-footed passes attempted | Count |
+| PaswHead | Headed passes attempted | Count |
+| PaswOther | Passes attempted with other body parts (e.g. chest, knee) | Count |
+| PasPress | Passes attempted while under pressure from an opponent | Count |
+| PasInt | Passes attempted that were intercepted by an opponent | Count |
+| PasOut | Passes attempted that went out of bounds | Count |
 
 ### Positioning
 
@@ -131,6 +153,7 @@ _e.g. Crosses could fall under 'Passing' or 'Chance Creation'_
 | TklDriPast | Number of times dribbled past by an opposing player | Count |
 | Blocks | Number of times blocking the ball by standing in its path | Count |
 | BlkSh | Number of times blocking a shot by standing in its path | Count |
+| BlkShSv | Number of times blocking a shot that was traveling toward the goal (a save by a non-goalkeeper) | Count |
 | BlkPass | Number of times blocking a pass by standing in its path | Count |
 | Int | Interceptions | Count |
 | Tkl+Int | Number of players tackled plus number of interceptions | Count |
@@ -140,6 +163,17 @@ _e.g. Crosses could fall under 'Passing' or 'Chance Creation'_
 | TklW | Tackles in which the tackler's team won possession of the ball | Count |
 | PKcon | Penalty kicks conceded | Count |
 | OG | Own goals | Count |
+
+### Pressures
+
+| Column | Description | Data Type |
+| :--- | :--- | :--- |
+| Press | Number of times applying pressure to an opposing player who is receiving, carrying or releasing the ball | Count |
+| PresSucc | Number of times the team regained possession of the ball within 5 seconds of applying pressure | Count |
+| Press% | Successful pressure percentage (percentage of time the team regained possession within 5 seconds of applying pressure) | Percentage |
+| PresDef3rd | Pressures in defensive 1/3 | Count |
+| PresMid3rd | Pressures in middle 1/3 | Count |
+| PresAtt3rd | Pressures in attacking 1/3 | Count |
 
 ### Involvement
 
@@ -153,16 +187,18 @@ _e.g. Crosses could fall under 'Passing' or 'Chance Creation'_
 | TouAttPen | Touches in attacking penalty area | Count |
 | TouLive | Live-ball touches. Does not include corner kicks, free kicks, throw-ins, kick-offs, goal kicks or penalty kicks. | Count |
 | Rec | Number of times a player successfully received a pass | Count |
+| RecTarg | Number of times a player was targeted with a pass | Count |
+| Rec% | Percentage of passes targeted at the player that were successfully received | Percentage |
 
 ### Dribbling
 
 | Column | Description | Data Type |
 | :--- | :--- | :--- |
-| ToAtt | Number of attempts to take on defenders while dribbling | Count |
-| ToSuc | Number of defenders taken on successfully, by dribbling past them | Count |
-| ToSuc% | Percentage of take-ons Completed Successfully | Percentage |
-| ToTkl | Number of times tackled by a defender during a take-on attempt | Count |
-| ToTkl% | Percentage of time tackled by a defender during a take-on attempt | Percentage |
+| DriSucc | Number of successful dribbles (dribbled past an opponent) | Count |
+| DriAtt | Number of dribbles attempted | Count |
+| DriSucc% | Percentage of completed/successful dribbles | Percentage |
+| DriPast | Number of times a player successfully dribbled past an opponent | Count |
+| DriMegs | Number of times a player dribbled the ball through an opponent's legs (nutmegs) | Count |
 | Carries | Number of times the player controlled the ball with their feet | Count |
 | CarTotDist | Total distance, in yards, a player moved the ball while controlling it with their feet, in any direction | Count |
 | CarPrgDist | Total distance, in yards, a player moved the ball while controlling it with their feet towards the opponent's goal | Count |
