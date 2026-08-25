@@ -10,6 +10,7 @@ _e.g. Crosses could fall under 'Passing' or 'Chance Creation'_
 | Player | Player's name | Qualitative |
 | Nation | Player's nation | Qualitative |
 | Pos | Position | Qualitative |
+| Primary_Pos | Primary position of the player (first position listed in raw data, or main position of the club they played the most minutes for if they played for multiple clubs) | Qualitative |
 | Age | Player's age | Qualitative |
 | Born | Year of birth | Qualitative |
 | Num_Pos | Number of positions played by the player | Count |
