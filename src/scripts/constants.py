@@ -1,0 +1,1 @@
+PRIMARY_POS_ORDER = ['GK', 'DF', 'MF', 'FW']
