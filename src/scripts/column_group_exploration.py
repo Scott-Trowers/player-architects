@@ -31,6 +31,10 @@ def explore_column_group(df, columns, group_col='Primary_Pos', player_col='Playe
         groups = sorted(plot_df[group_col].unique())
         palette = dict(zip(groups, sns.color_palette('tab10', n_colors=len(groups))))
 
+    present_groups = plot_df[group_col].unique()
+    group_order = [p for p in PRIMARY_POS_ORDER if p in present_groups]
+    group_order += [p for p in present_groups if p not in PRIMARY_POS_ORDER]
+
     # 1. Descriptive statistics, including skew and kurtosis
     summary = df[columns].describe()
     summary.loc['skew'] = df[columns].skew()
@@ -64,16 +68,17 @@ def explore_column_group(df, columns, group_col='Primary_Pos', player_col='Playe
         fig.subplots_adjust(hspace=0.0)
         plt.show()
 
-    # 3. Highest and lowest 5 players for each metric, as annotated lollipop charts
+    # 3. Highest and lowest 5 players for each metric, as annotated lollipop charts coloured by group_col
     chunks = [columns[i:i + lollipop_cols_per_row] for i in range(0, len(columns), lollipop_cols_per_row)]
     for chunk in chunks:
         fig, axes = plt.subplots(1, len(chunk), figsize=(5.5 * len(chunk), 6), squeeze=False)
         for ax, col in zip(axes[0], chunk):
-            highest = df[[player_col, col]].nlargest(5, col)
-            lowest = df[[player_col, col]].nsmallest(5, col)
+            highest = df[[player_col, col, group_col]].nlargest(5, col)
+            lowest = df[[player_col, col, group_col]].nsmallest(5, col)
             labels = highest[player_col].tolist() + [''] + lowest[player_col].tolist()
             values = np.array(highest[col].tolist() + [np.nan] + lowest[col].tolist(), dtype=float)
-            colors = np.array(['teal'] * len(highest) + ['white'] + ['#C44E52'] * len(lowest), dtype=object)
+            group_colors = highest[group_col].map(palette).tolist() + [None] + lowest[group_col].map(palette).tolist()
+            colors = np.array(['gray' if c is None else c for c in group_colors], dtype=object)
             y_pos = np.arange(len(labels))[::-1]
             valid = ~np.isnan(values)
 
@@ -90,6 +95,9 @@ def explore_column_group(df, columns, group_col='Primary_Pos', player_col='Playe
             sns.despine(ax=ax, left=True)
         for ax in axes[0][len(chunk):]:
             ax.set_visible(False)
+        handles = [plt.Line2D([0], [0], marker='o', linestyle='', color=palette[grp], markersize=8, label=grp)
+                   for grp in group_order]
+        fig.legend(handles=handles, title=group_col, loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=len(group_order))
         plt.tight_layout()
         plt.show()
 
@@ -122,10 +130,7 @@ def explore_column_group(df, columns, group_col='Primary_Pos', player_col='Playe
     plt.show()
 
     # 7. Grid of bar charts: mean of each column, per group
-    group_means = plot_df.groupby(group_col)[columns].mean()
-    group_order = [p for p in PRIMARY_POS_ORDER if p in group_means.index]
-    group_order += [p for p in group_means.index if p not in PRIMARY_POS_ORDER]
-    group_means = group_means.loc[group_order]
+    group_means = plot_df.groupby(group_col)[columns].mean().loc[group_order]
     n_rows = (len(columns) + bar_cols_per_row - 1) // bar_cols_per_row
     fig, axes = plt.subplots(n_rows, bar_cols_per_row, figsize=(4 * bar_cols_per_row, 4 * n_rows), squeeze=False)
     for ax, col in zip(axes.flat, columns):

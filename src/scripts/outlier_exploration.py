@@ -75,13 +75,16 @@ def explore_outliers(df, player_identifiers, columns, primary_pos=None, id_col='
     average_panel += [(pos, df.loc[df[group_col] == pos, columns].mean(), avg_palette[pos]) for pos in avg_positions]
 
     panels = [average_panel]
-    panels += [[(row[name_col], row[columns], highlight_color)] for _, row in plot_df[highlight_mask].iterrows()]
+    panel_titles = ['Average']
+    for _, row in plot_df[highlight_mask].iterrows():
+        panels.append([(row[name_col], row[columns], highlight_color)])
+        panel_titles.append(f'{row[name_col]}\n{row[group_col]} | Age {row["Age"]:.0f} | {row["Squad"]}')
 
     n_rows = (len(panels) + radar_cols_per_row - 1) // radar_cols_per_row
     fig, axes = plt.subplots(n_rows, radar_cols_per_row, figsize=(4 * radar_cols_per_row, 4 * n_rows),
                               subplot_kw=dict(polar=True), squeeze=False)
 
-    for ax, series_list in zip(axes.flat, panels):
+    for ax, series_list, title in zip(axes.flat, panels, panel_titles):
         for label, raw_values, color in series_list:
             normalized = ((raw_values - col_min) / col_span).tolist()
             normalized += normalized[:1]
@@ -103,11 +106,9 @@ def explore_outliers(df, player_identifiers, columns, primary_pos=None, id_col='
             ax.text(angle, -0.08, f'{col_min[col]:.2f}', fontsize=7, ha='center', va='center', color='#898781')
             ax.text(angle, 1.08, f'{col_max[col]:.2f}', fontsize=7, ha='center', va='center', color='#898781')
 
+        ax.set_title(title, fontsize=11, pad=15)
         if len(series_list) > 1:
-            ax.set_title('Average', fontsize=11, pad=15)
             ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1), fontsize=7)
-        else:
-            ax.set_title(str(series_list[0][0]), fontsize=11, pad=15)
 
     for ax in axes.flat[len(panels):]:
         ax.set_visible(False)
