@@ -169,7 +169,8 @@ def explore_column_group(df, columns, group_col='Primary_Pos', player_col='Playe
         for angle, scaled_v, raw_v in zip(angles, scaled_values, raw_values):
             ax.text(angle, scaled_v + 0.08, f'{raw_v:.2g}', ha='center', va='center', fontsize=7)
         ax.set_xticks(angles)
-        ax.set_xticklabels([f'{col}\n(max: {max_v:.2g})' for col, max_v in zip(columns, max_values)], fontsize=7)
+        ax.set_xticklabels([f'{col}\n(max: {max_v:.2g})' for 
+        col, max_v in zip(columns, max_values)], fontsize=7)
         ax.set_ylim(0, 1.2)
         ax.set_yticklabels([])  # radial ticks are a normalised scale, not real units - hide them
         ax.set_title(panel, fontsize=12, fontweight='bold', pad=20)
