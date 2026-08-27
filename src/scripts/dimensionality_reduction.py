@@ -9,10 +9,11 @@ from sklearn.preprocessing import StandardScaler
 from scripts.constants import PRIMARY_POS_ORDER
 
 
-def explore_dimensionality_reduction(df, columns, group_col='Primary_Pos', palette=None):
+def explore_dimensionality_reduction(df, columns, group_col='Primary_Pos', palette=None, k=None):
     columns = list(columns)
     plot_df = df[columns + [group_col]].dropna()
-    X = StandardScaler().fit_transform(plot_df[columns])
+    scaler = StandardScaler()
+    X = scaler.fit_transform(plot_df[columns])
 
     if palette is None:
         groups = sorted(plot_df[group_col].unique())
@@ -32,7 +33,12 @@ def explore_dimensionality_reduction(df, columns, group_col='Primary_Pos', palet
     vec_parallel = np.outer(vec_from_first @ line_vec, line_vec)
     dist_from_line = np.linalg.norm(vec_from_first - vec_parallel, axis=1)
     elbow = int(np.argmax(dist_from_line)) + 1
-    k = max(1, elbow)
+    
+    if k is None:
+        k = max(1, elbow - 1)
+    else:
+        k = int(k)
+        
     kaiser_k = int((eigenvalues > 1).sum())
 
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -48,21 +54,7 @@ def explore_dimensionality_reduction(df, columns, group_col='Primary_Pos', palet
     plt.tight_layout()
     plt.show()
 
-    # 2. PCA and Factor Analysis, both reduced to k dimensions
-    pca = PCA(n_components=k).fit(X)
-    fa = FactorAnalysis(n_components=k, random_state=0).fit(X)
-
-    pca_scores = pca.transform(X)
-    fa_scores = fa.transform(X)
-    pca_loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
-    fa_loadings = fa.components_.T
-
-    print(f'PCA loadings (k={k})')
-    display(pd.DataFrame(pca_loadings, index=columns, columns=[f'PC{i + 1}' for i in range(k)]))
-    print(f'Factor Analysis loadings (k={k})')
-    display(pd.DataFrame(fa_loadings, index=columns, columns=[f'Factor{i + 1}' for i in range(k)]))
-
-    # 3. Variance explained by each component/factor - show at least 5 (or all available columns), even
+    # 2. Variance explained by each component/factor - show at least 5 (or all available columns), even
     # though only k are kept above; FA components aren't nested like PCA's, so these are refit at n_show
     n_show = max(k, min(5, len(columns)))
     pca_show = PCA(n_components=n_show).fit(X)
@@ -86,6 +78,20 @@ def explore_dimensionality_reduction(df, columns, group_col='Primary_Pos', palet
     ax.legend()
     plt.tight_layout()
     plt.show()
+
+    # 3. PCA and Factor Analysis, both reduced to k dimensions
+    pca = PCA(n_components=k).fit(X)
+    fa = FactorAnalysis(n_components=k, random_state=0).fit(X)
+
+    pca_scores = pca.transform(X)
+    fa_scores = fa.transform(X)
+    pca_loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
+    fa_loadings = fa.components_.T
+
+    print(f'PCA loadings (k={k})')
+    display(pd.DataFrame(pca_loadings, index=columns, columns=[f'PC{i + 1}' for i in range(k)]))
+    print(f'Factor Analysis loadings (k={k})')
+    display(pd.DataFrame(fa_loadings, index=columns, columns=[f'Factor{i + 1}' for i in range(k)]))
 
     # 4. Biplots: player scores (coloured by group_col) with feature loading vectors overlaid,
     # one grid per method, showing every pairwise combination of the k retained dimensions
@@ -126,3 +132,97 @@ def explore_dimensionality_reduction(df, columns, group_col='Primary_Pos', palet
         fig.suptitle(f'{title} Biplots', fontsize=15, fontweight='bold')
         plt.tight_layout()
         plt.show()
+
+    return scaler, {'pca': pca, 'fa': fa}
+
+
+def add_reduced_dimensions(df, target_df, columns, method='pca', k=None, col_names=None, fitted_scaler=None, fitted_model=None):
+    """
+    Fits PCA or Factor Analysis on the specified columns of df (or uses pre-fitted models),
+    transforms the data, and adds the resulting scores as new columns in target_df,
+    aligned by index.
+
+    Parameters:
+    -----------
+    df : pandas.DataFrame
+        The source DataFrame containing the raw numeric columns.
+    target_df : pandas.DataFrame
+        The target DataFrame to which the reduced dimension columns will be added.
+    columns : list-like
+        The list of columns to perform dimensionality reduction on.
+    method : str, default 'pca'
+        The method to use ('pca' or 'fa'). Ignored if fitted_model is provided.
+    k : int, optional
+        The number of components/factors. Ignored if fitted_model is provided.
+        If None and fitted_model is None, it is automatically determined using the
+        elbow - 1 heuristic (consistent with explore_dimensionality_reduction).
+    col_names : list of str, optional
+        The names for the new columns in target_df. Must match the length of k.
+        If None, they will default to PC1, PC2... or Factor1, Factor2...
+    fitted_scaler : sklearn.preprocessing.StandardScaler, optional
+        A pre-fitted StandardScaler. If provided, fitted_model must also be provided.
+    fitted_model : sklearn.decomposition.PCA or sklearn.decomposition.FactorAnalysis, optional
+        A pre-fitted PCA or FactorAnalysis model. If provided, fitted_scaler must also be provided.
+    
+    Returns:
+    --------
+    pandas.DataFrame
+        A copy of target_df with the new reduced dimension columns added.
+    """
+    columns = list(columns)
+    valid_data = df[columns].dropna()
+
+    if fitted_scaler is not None and fitted_model is not None:
+        # Use pre-fitted models (prevents sign flip / row mismatches)
+        X = fitted_scaler.transform(valid_data)
+        scores = fitted_model.transform(X)
+        k = scores.shape[1]
+    else:
+        # Fit from scratch
+        method = method.lower()
+        if method not in ['pca', 'fa']:
+            raise ValueError("method must be either 'pca' or 'fa'")
+
+        X = StandardScaler().fit_transform(valid_data)
+
+        # Calculate k via elbow heuristic if not provided
+        eigenvalues = PCA().fit(X).explained_variance_
+        comps = np.arange(1, len(eigenvalues) + 1)
+
+        x_norm = (comps - comps.min()) / (comps.max() - comps.min())
+        y_norm = (eigenvalues - eigenvalues.min()) / (eigenvalues.max() - eigenvalues.min())
+        line_vec = np.array([x_norm[-1] - x_norm[0], y_norm[-1] - y_norm[0]])
+        line_vec /= np.linalg.norm(line_vec)
+        vec_from_first = np.stack([x_norm - x_norm[0], y_norm - y_norm[0]], axis=1)
+        vec_parallel = np.outer(vec_from_first @ line_vec, line_vec)
+        dist_from_line = np.linalg.norm(vec_from_first - vec_parallel, axis=1)
+        elbow = int(np.argmax(dist_from_line)) + 1
+        
+        if k is None:
+            k = max(1, elbow - 1)
+        else:
+            k = int(k)
+
+        if method == 'pca':
+            fitted_model = PCA(n_components=k).fit(X)
+        else:
+            fitted_model = FactorAnalysis(n_components=k, random_state=0).fit(X)
+
+        scores = fitted_model.transform(X)
+
+    if col_names is None:
+        if isinstance(fitted_model, PCA):
+            col_names = [f'PC{i + 1}' for i in range(k)]
+        else:
+            col_names = [f'Factor{i + 1}' for i in range(k)]
+    else:
+        if len(col_names) != k:
+            raise ValueError(f"Length of col_names ({len(col_names)}) must match k ({k})")
+
+    scores_df = pd.DataFrame(scores, index=valid_data.index, columns=col_names)
+
+    target_df = target_df.copy()
+    for col in col_names:
+        target_df[col] = scores_df[col]
+
+    return target_df
