@@ -37,7 +37,34 @@ def explore_column_group(df, columns, group_col='Primary_Pos', player_col='Playe
     summary.loc['kurtosis'] = df[columns].kurt()
     display(summary)
 
-    # 2. Highest and lowest 5 players for each metric, as annotated lollipop charts
+    # 2. Histogram + KDE with an integrated boxplot, chunked into rows
+    chunks = [columns[i:i + hist_cols_per_row] for i in range(0, len(columns), hist_cols_per_row)]
+    for chunk in chunks:
+        n_cols = len(chunk)
+        fig, axes = plt.subplots(
+            2, n_cols, figsize=(n_cols * 5.5, 10), sharex='col',
+            gridspec_kw={'height_ratios': (0.95, 0.05)}, squeeze=False,
+        )
+        for i, col in enumerate(chunk):
+            ax_hist, ax_box = axes[0, i], axes[1, i]
+            sns.histplot(data=df, x=col, kde=True, color='teal', ax=ax_hist)
+            ax_hist.set_title(f'Distribution of {col}', fontsize=14, fontweight='bold')
+            ax_hist.set_ylabel('Density', fontsize=11)
+            ax_hist.tick_params(labelbottom=False)
+            sns.despine(ax=ax_hist, top=True, right=True, bottom=True)
+
+            sns.boxplot(
+                data=df, x=col, color='#3F51B5', width=0.3, ax=ax_box, showmeans=True,
+                meanprops={'marker': '+', 'markeredgecolor': 'white', 'markerfacecolor': 'white', 'markersize': 8},
+                medianprops={'color': 'white', 'linewidth': 2}, fliersize=2,
+            )
+            ax_box.set_xlabel(col, fontsize=12)
+            ax_box.yaxis.set_visible(False)
+            sns.despine(ax=ax_box, left=True, top=True, right=True, bottom=False)
+        fig.subplots_adjust(hspace=0.0)
+        plt.show()
+
+    # 3. Highest and lowest 5 players for each metric, as annotated lollipop charts
     chunks = [columns[i:i + lollipop_cols_per_row] for i in range(0, len(columns), lollipop_cols_per_row)]
     for chunk in chunks:
         fig, axes = plt.subplots(1, len(chunk), figsize=(5.5 * len(chunk), 6), squeeze=False)
@@ -64,33 +91,6 @@ def explore_column_group(df, columns, group_col='Primary_Pos', player_col='Playe
         for ax in axes[0][len(chunk):]:
             ax.set_visible(False)
         plt.tight_layout()
-        plt.show()
-
-    # 3. Histogram + KDE with an integrated boxplot, chunked into rows
-    chunks = [columns[i:i + hist_cols_per_row] for i in range(0, len(columns), hist_cols_per_row)]
-    for chunk in chunks:
-        n_cols = len(chunk)
-        fig, axes = plt.subplots(
-            2, n_cols, figsize=(n_cols * 5.5, 10), sharex='col',
-            gridspec_kw={'height_ratios': (0.85, 0.15)}, squeeze=False,
-        )
-        for i, col in enumerate(chunk):
-            ax_hist, ax_box = axes[0, i], axes[1, i]
-            sns.histplot(data=df, x=col, kde=True, color='teal', ax=ax_hist)
-            ax_hist.set_title(f'Distribution of {col}', fontsize=14, fontweight='bold')
-            ax_hist.set_ylabel('Density', fontsize=11)
-            ax_hist.tick_params(labelbottom=False)
-            sns.despine(ax=ax_hist, top=True, right=True, bottom=True)
-
-            sns.boxplot(
-                data=df, x=col, color='#3F51B5', width=0.3, ax=ax_box, showmeans=True,
-                meanprops={'marker': '+', 'markeredgecolor': 'white', 'markerfacecolor': 'white', 'markersize': 8},
-                medianprops={'color': 'white', 'linewidth': 2}, fliersize=2,
-            )
-            ax_box.set_xlabel(col, fontsize=12)
-            ax_box.yaxis.set_visible(False)
-            sns.despine(ax=ax_box, left=True, top=True, right=True, bottom=False)
-        fig.subplots_adjust(hspace=0.0)
         plt.show()
 
     # 4. Correlation matrix
@@ -136,3 +136,45 @@ def explore_column_group(df, columns, group_col='Primary_Pos', player_col='Playe
         ax.set_visible(False)
     plt.tight_layout()
     plt.show()
+
+    """
+    # 8. Circular bar (radar) chart per group, plus an overall "All Players" panel: mean of each
+    # column scaled by that panel's own max so every spoke starts at a true zero. bars are drawn as
+    # thin spokes rather than wide wedges, so there's no filled area to misjudge and the radius can
+    # stay a plain linear mean/max scale. annotations show the real (unscaled) max and mean.
+    group_max = plot_df.groupby(group_col)[columns].max().loc[group_order]
+    scaled_means = group_means[columns] / group_max[columns]
+
+    panels = ['All Players'] + group_order
+    panel_means = dict(group_means[columns].T.items())
+    panel_means['All Players'] = plot_df[columns].mean()
+    panel_max = dict(group_max[columns].T.items())
+    panel_max['All Players'] = plot_df[columns].max()
+    panel_scaled = dict(scaled_means[columns].T.items())
+    panel_scaled['All Players'] = panel_means['All Players'] / panel_max['All Players']
+    panel_color = {**palette, 'All Players': 'teal'}
+
+    angles = np.linspace(0, 2 * np.pi, len(columns), endpoint=False)
+    n_cols_grid = min(4, len(panels))
+    n_rows_grid = (len(panels) + n_cols_grid - 1) // n_cols_grid
+    fig, axes = plt.subplots(
+        n_rows_grid, n_cols_grid, figsize=(5 * n_cols_grid, 5 * n_rows_grid),
+        squeeze=False, subplot_kw={'projection': 'polar'},
+    )
+    for ax, panel in zip(axes.flat, panels):
+        scaled_values = panel_scaled[panel][columns].values
+        raw_values = panel_means[panel][columns].values
+        max_values = panel_max[panel][columns].values
+        ax.bar(angles, scaled_values, width=0.65, color=panel_color[panel], alpha=0.9)
+        for angle, scaled_v, raw_v in zip(angles, scaled_values, raw_values):
+            ax.text(angle, scaled_v + 0.08, f'{raw_v:.2g}', ha='center', va='center', fontsize=7)
+        ax.set_xticks(angles)
+        ax.set_xticklabels([f'{col}\n(max: {max_v:.2g})' for col, max_v in zip(columns, max_values)], fontsize=7)
+        ax.set_ylim(0, 1.2)
+        ax.set_yticklabels([])  # radial ticks are a normalised scale, not real units - hide them
+        ax.set_title(panel, fontsize=12, fontweight='bold', pad=20)
+    for ax in axes.flat[len(panels):]:
+        ax.set_visible(False)
+    plt.tight_layout()
+    plt.show()
+    """
