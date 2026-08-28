@@ -131,13 +131,13 @@ _e.g. Crosses could fall under 'Passing' or 'Chance Creation'_
 | PasPress | Passes attempted while under pressure from an opponent | Count |
 | PasInt | Passes attempted that were intercepted by an opponent | Count |
 | PasOut | Passes attempted that went out of bounds | Count |
+| PasOff | Passes made leading to an offside | Count |
 
 ### Positioning
 
-| Column | Description | Data Type |
-| :--- | :--- | :--- |
-| PasOff | Offsides | Count |
-| Off | Offsides | Count |
+| Column | Description                       | Data Type |
+| :--- |:----------------------------------| :--- |
+| Off | Offsides                          | Count |
 
 ### Defensive Plays
 
@@ -186,7 +186,6 @@ _e.g. Crosses could fall under 'Passing' or 'Chance Creation'_
 | TouMid3rd | Touches in middle 1/3 | Count |
 | TouAtt3rd | Touches in attacking 1/3 | Count |
 | TouAttPen | Touches in attacking penalty area | Count |
-| TouLive | Live-ball touches. Does not include corner kicks, free kicks, throw-ins, kick-offs, goal kicks or penalty kicks. | Count |
 | Rec | Number of times a player successfully received a pass | Count |
 | RecTarg | Number of times a player was targeted with a pass | Count |
 | Rec% | Percentage of passes targeted at the player that were successfully received | Percentage |
