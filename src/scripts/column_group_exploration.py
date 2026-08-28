@@ -68,48 +68,63 @@ def explore_column_group(df, columns, group_col='Primary_Pos', player_col='Playe
                 sns.despine(ax=ax_box, left=True, top=True, right=True, bottom=False)
             else:
                 # Keep them visible to prevent Jupyter's bbox_inches='tight' from cropping the empty space,
-                # but strip them of all visual elements so they appear completely blank.
+                # but style them with very subtle dotted light-gray borders as a clean, dashboard-grid placeholder.
                 ax_hist.xaxis.set_visible(False)
                 ax_hist.yaxis.set_visible(False)
                 ax_hist.grid(False)
                 for spine in ax_hist.spines.values():
-                    spine.set_visible(False)
+                    spine.set_color('#e0e0e0')
+                    spine.set_linestyle('--')
+                    spine.set_visible(True)
 
                 ax_box.xaxis.set_visible(False)
                 ax_box.yaxis.set_visible(False)
                 ax_box.grid(False)
                 for spine in ax_box.spines.values():
-                    spine.set_visible(False)
+                    spine.set_color('#e0e0e0')
+                    spine.set_linestyle('--')
+                    spine.set_visible(True)
         fig.subplots_adjust(hspace=0.0)
         plt.show()
 
     # 3. Highest and lowest 5 players for each metric, as annotated lollipop charts coloured by group_col
     chunks = [columns[i:i + lollipop_cols_per_row] for i in range(0, len(columns), lollipop_cols_per_row)]
     for chunk in chunks:
-        fig, axes = plt.subplots(1, len(chunk), figsize=(5.5 * len(chunk), 6), squeeze=False)
-        for ax, col in zip(axes[0], chunk):
-            highest = df[[player_col, col, group_col]].nlargest(5, col)
-            lowest = df[[player_col, col, group_col]].nsmallest(5, col)
-            labels = highest[player_col].tolist() + [''] + lowest[player_col].tolist()
-            values = np.array(highest[col].tolist() + [np.nan] + lowest[col].tolist(), dtype=float)
-            group_colors = highest[group_col].map(palette).tolist() + [None] + lowest[group_col].map(palette).tolist()
-            colors = np.array(['gray' if c is None else c for c in group_colors], dtype=object)
-            y_pos = np.arange(len(labels))[::-1]
-            valid = ~np.isnan(values)
+        fig, axes = plt.subplots(1, lollipop_cols_per_row, figsize=(lollipop_cols_per_row * 5.5, 6), squeeze=False)
+        for i in range(lollipop_cols_per_row):
+            ax = axes[0, i]
+            if i < len(chunk):
+                col = chunk[i]
+                highest = df[[player_col, col, group_col]].nlargest(5, col)
+                lowest = df[[player_col, col, group_col]].nsmallest(5, col)
+                labels = highest[player_col].tolist() + [''] + lowest[player_col].tolist()
+                values = np.array(highest[col].tolist() + [np.nan] + lowest[col].tolist(), dtype=float)
+                group_colors = highest[group_col].map(palette).tolist() + [None] + lowest[group_col].map(palette).tolist()
+                colors = np.array(['gray' if c is None else c for c in group_colors], dtype=object)
+                y_pos = np.arange(len(labels))[::-1]
+                valid = ~np.isnan(values)
 
-            ax.hlines(y_pos[valid], xmin=0, xmax=values[valid], color=colors[valid], linewidth=2)
-            ax.scatter(values[valid], y_pos[valid], color=colors[valid], s=60, zorder=3)
-            for y, v in zip(y_pos[valid], values[valid]):
-                ax.text(v, y, f' {v:.2f}', va='center', ha='left' if v >= 0 else 'right', fontsize=9)
+                ax.hlines(y_pos[valid], xmin=0, xmax=values[valid], color=colors[valid], linewidth=2)
+                ax.scatter(values[valid], y_pos[valid], color=colors[valid], s=60, zorder=3)
+                for y, v in zip(y_pos[valid], values[valid]):
+                    ax.text(v, y, f' {v:.2f}', va='center', ha='left' if v >= 0 else 'right', fontsize=9)
 
-            ax.axvline(0, color='black', linewidth=0.8)
-            ax.set_yticks(y_pos)
-            ax.set_yticklabels(labels, fontsize=9)
-            ax.set_title(f'Highest/Lowest 5 - {col}', fontsize=12, fontweight='bold')
-            ax.margins(x=0.2)
-            sns.despine(ax=ax, left=True)
-        for ax in axes[0][len(chunk):]:
-            ax.set_visible(False)
+                ax.axvline(0, color='black', linewidth=0.8)
+                ax.set_yticks(y_pos)
+                ax.set_yticklabels(labels, fontsize=9)
+                ax.set_title(f'Highest/Lowest 5 - {col}', fontsize=12, fontweight='bold')
+                ax.margins(x=0.2)
+                sns.despine(ax=ax, left=True)
+            else:
+                # Keep them visible to prevent Jupyter's bbox_inches='tight' from cropping the empty space,
+                # but style them with very subtle dotted light-gray borders as a clean, dashboard-grid placeholder.
+                ax.xaxis.set_visible(False)
+                ax.yaxis.set_visible(False)
+                ax.grid(False)
+                for spine in ax.spines.values():
+                    spine.set_color('#e0e0e0')
+                    spine.set_linestyle('--')
+                    spine.set_visible(True)
         handles = [plt.Line2D([0], [0], marker='o', linestyle='', color=palette[grp], markersize=8, label=grp)
                    for grp in group_order]
         fig.legend(handles=handles, title=group_col, loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=len(group_order))
