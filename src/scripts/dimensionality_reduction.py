@@ -136,7 +136,7 @@ def explore_dimensionality_reduction(df, columns, group_col='Primary_Pos', palet
     return scaler, {'pca': pca, 'fa': fa}
 
 
-def add_reduced_dimensions(df, target_df, columns, method='pca', k=None, col_names=None, fitted_scaler=None, fitted_model=None):
+def add_reduced_dimensions(df, target_df, columns, method='pca', k=None, col_names=None, fitted_scaler=None, fitted_model=None, signs=None):
     """
     Fits PCA or Factor Analysis on the specified columns of df (or uses pre-fitted models),
     transforms the data, and adds the resulting scores as new columns in target_df,
@@ -163,6 +163,9 @@ def add_reduced_dimensions(df, target_df, columns, method='pca', k=None, col_nam
         A pre-fitted StandardScaler. If provided, fitted_model must also be provided.
     fitted_model : sklearn.decomposition.PCA or sklearn.decomposition.FactorAnalysis, optional
         A pre-fitted PCA or FactorAnalysis model. If provided, fitted_scaler must also be provided.
+    signs : list of str or int, optional
+        Assigns the sign multiplier of each component/factor scores to guarantee semantic directionality
+        (e.g., ['+', '-'] or [1, -1]). Must match the length of k.
     
     Returns:
     --------
@@ -209,6 +212,42 @@ def add_reduced_dimensions(df, target_df, columns, method='pca', k=None, col_nam
             fitted_model = FactorAnalysis(n_components=k, random_state=0).fit(X)
 
         scores = fitted_model.transform(X)
+
+    if signs is not None:
+        if len(signs) != k:
+            raise ValueError(f"Length of signs ({len(signs)}) must match k ({k})")
+        
+        parsed_signs = []
+        for i, s in enumerate(signs):
+            if s in [1, '+', '1', '+1']:
+                parsed_signs.append(1)
+            elif s in [-1, '-', '-1']:
+                parsed_signs.append(-1)
+            elif isinstance(s, str):
+                # Check if it's a feature name or prefixed with '-'
+                is_negative = s.startswith('-')
+                feature_name = s[1:] if is_negative else s
+                feature_name = feature_name.strip()
+                
+                if feature_name in columns:
+                    col_idx = columns.index(feature_name)
+                    # Inspect the loading of this feature on component i
+                    # fitted_model.components_ has shape (n_components, n_features)
+                    loading_val = fitted_model.components_[i, col_idx]
+                    
+                    # Align component sign so that the loading matches requested sign
+                    if loading_val >= 0:
+                        multiplier = -1 if is_negative else 1
+                    else:
+                        multiplier = 1 if is_negative else -1
+                    parsed_signs.append(multiplier)
+                else:
+                    raise ValueError(f"Invalid sign indicator or feature name '{s}'. Feature must be in columns: {columns}")
+            else:
+                raise ValueError(f"Invalid sign indicator '{s}'. Must be '+', '-', 1, -1, or a column name.")
+        
+        for i in range(k):
+            scores[:, i] *= parsed_signs[i]
 
     if col_names is None:
         if isinstance(fitted_model, PCA):

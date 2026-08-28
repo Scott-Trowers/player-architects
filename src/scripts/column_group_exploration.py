@@ -44,27 +44,42 @@ def explore_column_group(df, columns, group_col='Primary_Pos', player_col='Playe
     # 2. Histogram + KDE with an integrated boxplot, chunked into rows
     chunks = [columns[i:i + hist_cols_per_row] for i in range(0, len(columns), hist_cols_per_row)]
     for chunk in chunks:
-        n_cols = len(chunk)
         fig, axes = plt.subplots(
-            2, n_cols, figsize=(n_cols * 5.5, 10), sharex='col',
+            2, hist_cols_per_row, figsize=(hist_cols_per_row * 5.5, 5), sharex='col',
             gridspec_kw={'height_ratios': (0.95, 0.05)}, squeeze=False,
         )
-        for i, col in enumerate(chunk):
+        for i in range(hist_cols_per_row):
             ax_hist, ax_box = axes[0, i], axes[1, i]
-            sns.histplot(data=df, x=col, kde=True, color='teal', ax=ax_hist)
-            ax_hist.set_title(f'Distribution of {col}', fontsize=14, fontweight='bold')
-            ax_hist.set_ylabel('Density', fontsize=11)
-            ax_hist.tick_params(labelbottom=False)
-            sns.despine(ax=ax_hist, top=True, right=True, bottom=True)
+            if i < len(chunk):
+                col = chunk[i]
+                sns.histplot(data=df, x=col, kde=True, color='teal', ax=ax_hist)
+                ax_hist.set_title(f'Distribution of {col}', fontsize=14, fontweight='bold')
+                ax_hist.set_ylabel('Density', fontsize=11)
+                ax_hist.tick_params(labelbottom=False)
+                sns.despine(ax=ax_hist, top=True, right=True, bottom=True)
 
-            sns.boxplot(
-                data=df, x=col, color='#3F51B5', width=0.3, ax=ax_box, showmeans=True,
-                meanprops={'marker': '+', 'markeredgecolor': 'white', 'markerfacecolor': 'white', 'markersize': 8},
-                medianprops={'color': 'white', 'linewidth': 2}, fliersize=2,
-            )
-            ax_box.set_xlabel(col, fontsize=12)
-            ax_box.yaxis.set_visible(False)
-            sns.despine(ax=ax_box, left=True, top=True, right=True, bottom=False)
+                sns.boxplot(
+                    data=df, x=col, color='#3F51B5', width=0.3, ax=ax_box, showmeans=True,
+                    meanprops={'marker': '+', 'markeredgecolor': 'white', 'markerfacecolor': 'white', 'markersize': 8},
+                    medianprops={'color': 'white', 'linewidth': 2}, fliersize=2,
+                )
+                ax_box.set_xlabel(col, fontsize=12)
+                ax_box.yaxis.set_visible(False)
+                sns.despine(ax=ax_box, left=True, top=True, right=True, bottom=False)
+            else:
+                # Keep them visible to prevent Jupyter's bbox_inches='tight' from cropping the empty space,
+                # but strip them of all visual elements so they appear completely blank.
+                ax_hist.xaxis.set_visible(False)
+                ax_hist.yaxis.set_visible(False)
+                ax_hist.grid(False)
+                for spine in ax_hist.spines.values():
+                    spine.set_visible(False)
+
+                ax_box.xaxis.set_visible(False)
+                ax_box.yaxis.set_visible(False)
+                ax_box.grid(False)
+                for spine in ax_box.spines.values():
+                    spine.set_visible(False)
         fig.subplots_adjust(hspace=0.0)
         plt.show()
 
