@@ -1,5 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 from IPython.display import display
 from matplotlib.lines import Line2D
@@ -32,7 +32,7 @@ def explore_outliers(df, player_identifiers, columns, primary_pos=None, id_col='
     col_range = (plot_df[columns].max() - plot_df[columns].min()).replace(0, 1)
     scaled = (plot_df[columns] - plot_df[columns].min()) / col_range
 
-    fig, ax = plt.subplots(figsize=(max(12, len(columns) * 1.2), 6))
+    _fig, ax = plt.subplots(figsize=(max(12, len(columns) * 1.2), 6))
     x = list(range(len(columns)))
     for _, row in scaled[~highlight_mask].iterrows():
         ax.plot(x, row[columns], color=other_color, alpha=0.25, linewidth=1)
@@ -81,8 +81,8 @@ def explore_outliers(df, player_identifiers, columns, primary_pos=None, id_col='
         panel_titles.append(f'{row[name_col]}\n{row[group_col]} | Age {row["Age"]:.0f} | {row["Squad"]}')
 
     n_rows = (len(panels) + radar_cols_per_row - 1) // radar_cols_per_row
-    fig, axes = plt.subplots(n_rows, radar_cols_per_row, figsize=(4 * radar_cols_per_row, 4 * n_rows),
-                              subplot_kw=dict(polar=True), squeeze=False)
+    _fig, axes = plt.subplots(n_rows, radar_cols_per_row, figsize=(4 * radar_cols_per_row, 4 * n_rows),
+                               subplot_kw={'polar': True}, squeeze=False)
 
     for ax, series_list, title in zip(axes.flat, panels, panel_titles):
         for label, raw_values, color in series_list:

@@ -1,6 +1,6 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import seaborn as sns
 from IPython.display import display
 from sklearn.decomposition import PCA, FactorAnalysis
@@ -117,7 +117,7 @@ def explore_dimensionality_reduction(df, columns, group_col='Primary_Pos', palet
             scale_y = np.abs(y_scores).max() / np.abs(y_loadings).max() * 0.8 if dy is not None else scale_x
             for i, col_name in enumerate(columns):
                 x, y = loadings[i, dx] * scale_x, y_loadings[i] * scale_y
-                ax.annotate('', xy=(x, y), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='black'))
+                ax.annotate('', xy=(x, y), xytext=(0, 0), arrowprops={'arrowstyle': '->', 'color': 'black'})
                 ax.text(x * 1.15, y * 1.15, col_name, fontsize=8, ha='center', va='center')
 
             ax.axhline(0, color='grey', linewidth=0.5)

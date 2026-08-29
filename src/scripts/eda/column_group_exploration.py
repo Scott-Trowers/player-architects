@@ -1,9 +1,9 @@
-import numpy as np
 import matplotlib.pyplot as plt
-import scipy.stats as stats
+import numpy as np
 import seaborn as sns
 from IPython.display import display
 from pandas.plotting import parallel_coordinates
+from scipy import stats
 
 from scripts.constants import PRIMARY_POS_ORDER
 
@@ -353,7 +353,7 @@ def explore_high_correlations(
     n_cols = min(cols_per_row, n_pairs)
     n_rows = (n_pairs + n_cols - 1) // n_cols
 
-    fig, axes = plt.subplots(
+    _fig, axes = plt.subplots(
         n_rows,
         n_cols,
         figsize=(5 * n_cols, 4.5 * n_rows),
