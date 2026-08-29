@@ -13,4 +13,4 @@ jobs:
         with:
           python-version: "3.14"
       - run: pip install ruff
-      - run: ruff check projects/
+      - run: ruff check src/
