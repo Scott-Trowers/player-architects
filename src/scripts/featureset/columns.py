@@ -14,9 +14,27 @@ no-op prune call.
 
 from scripts.prune_featureset import prune_features
 
+LEAGUE_PCT_MINS_COLS = [
+    'Premier League_pct_mins',
+    'Ligue 1_pct_mins',
+    'Bundesliga_pct_mins',
+    'Serie A_pct_mins',
+    'La Liga_pct_mins',
+]
+
 DESCRIPTIVE_COLS = [
-    'player_identifier', 'Player', 'Nation', 'Age', 'Pos', 'Primary_Pos', 'Num_Pos',
-    'Squad', 'Comp', 'passing_foot_pref',
+    'player_identifier',
+    'Player',
+    'Nation',
+    'Age',
+    'Pos',
+    'Primary_Pos',
+    'Num_Pos',
+    'Squad',
+    'Comp',
+    'passing_foot_pref',
+    'signed_preference_score',
+    *LEAGUE_PCT_MINS_COLS,
 ]
 
 MATCHES_PLAYED_COLS = ['MP', 'Starts', 'Min', '90s', 'avg_minutes_per_match', 'starts_pct']
