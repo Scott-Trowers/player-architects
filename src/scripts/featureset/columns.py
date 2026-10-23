@@ -34,7 +34,7 @@ CHANCE_CREATION_PRUNE = []
 
 # Already cut down to the columns that indicate set-piece success/volume, rather than
 # just being entrusted with them (see docs/eda-findings.md).
-SET_PIECES_COLS = ['ShoFK_p90', 'ShoPK_p90', 'CK_p90', 'GcaPassDead_p90']
+SET_PIECES_COLS = ['ShoFK_p90', 'ShoPK_p90', 'CK_p90', 'GcaPassDead_p90', 'ScaPassDead_p90']
 SET_PIECES_PRUNE = []
 
 PASSING_COLS = [
