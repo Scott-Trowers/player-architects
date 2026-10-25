@@ -72,4 +72,5 @@ Future Phases:
  - Convert to a supervised learning problem, either via named labels, or estimated player values. 
    - Then can use metric learning, RF proximity, autoencoder embeddings to identify under-valued players.
    - Enables feature importance to highlight which metrics drive high-performance per archetype
+ - Fit the preprocessing pipeline (Yeo-Johnson lambdas, set-piece taker cut-offs, scaler means/spreads) on multiple seasons pooled together, giving stable 'yardsticks' so new seasons and new players can be placed into existing archetypes and compared across seasons consistently. For now (v1) it is deliberately re-fitted on each season, so archetypes describe a player relative to their own season.
  - Use time-based clustering (e.g. Dynamic Time-Warped) to analyse how high-performer's metrics evolved over time, and find young players who match the early trajectory of these

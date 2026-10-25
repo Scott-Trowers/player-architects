@@ -14,9 +14,21 @@ no-op prune call.
 
 from scripts.prune_featureset import prune_features
 
+# one column per top-5 league, built in aggregate.aggregate_players from the Comp values
+LEAGUE_PCT_MINS_COLS = [
+    'Premier League_pct_mins',
+    'Ligue 1_pct_mins',
+    'Bundesliga_pct_mins',
+    'Serie A_pct_mins',
+    'La Liga_pct_mins',
+]
+
+# ASSUMPTION: these describe who the player is rather than how they play, so they're kept in
+# the featureset for post-modelling analysis and dashboard filtering but never clustered on
 DESCRIPTIVE_COLS = [
     'player_identifier', 'Player', 'Nation', 'Age', 'Pos', 'Primary_Pos', 'Num_Pos',
-    'Squad', 'Comp', 'passing_foot_pref',
+    'Squad', 'Comp', 'passing_foot_pref', 'signed_preference_score',
+    *LEAGUE_PCT_MINS_COLS,
 ]
 
 MATCHES_PLAYED_COLS = ['MP', 'Starts', 'Min', '90s', 'avg_minutes_per_match', 'starts_pct']
