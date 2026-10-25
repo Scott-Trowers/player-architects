@@ -1,9 +1,9 @@
 """
 Feature scaling utilities and scikit-learn compatible scaler wrappers.
 
-Ported from notebooks/season2122_transformation_and_scaling.ipynb. Provides
-StandardScaler and RobustScaler wrappers that preserve pandas DataFrame index
-and column structure.
+Ported from notebooks/season2122_transformation_and_scaling.ipynb. Provides a
+StandardScaler/RobustScaler wrapper that preserves pandas DataFrame index and
+column structure.
 """
 
 from typing import Any
@@ -11,26 +11,26 @@ from typing import Any
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import RobustScaler, StandardScaler
+from sklearn.utils.validation import check_is_fitted
+
+# ASSUMPTION: StandardScaler over RobustScaler. many features are still zero-inflated after
+# transforming, so their IQR is 0 and RobustScaler would leave them unscaled
+DEFAULT_SCALER_TYPE = 'standard'
 
 
-def scale_features(
-    X: pd.DataFrame,
-    scaler_type: str = 'standard',
-) -> tuple[pd.DataFrame, StandardScaler | RobustScaler]:
+def build_scaler(scaler_type: str = DEFAULT_SCALER_TYPE) -> StandardScaler | RobustScaler:
     """
-    Scales numeric features using StandardScaler or RobustScaler.
+    Creates an unfitted scikit-learn scaler from its name.
 
     Parameters
     ----------
-    X : pd.DataFrame
-        Transformed numeric feature matrix.
     scaler_type : str
         Scaling strategy ('standard' or 'robust').
 
     Returns
     -------
-    tuple[pd.DataFrame, StandardScaler | RobustScaler]
-        Scaled DataFrame matching original index and columns, and fitted scaler.
+    StandardScaler | RobustScaler
+        A new scaler that hasn't learned anything yet.
 
     Raises
     ------
@@ -38,17 +38,10 @@ def scale_features(
         If an unsupported scaler_type is provided.
     """
     if scaler_type == 'standard':
-        scaler: StandardScaler | RobustScaler = StandardScaler()
-    elif scaler_type == 'robust':
-        scaler = RobustScaler()
-    else:
-        raise ValueError(
-            f"Unsupported scaler_type: {scaler_type}. Use 'standard' or 'robust'."
-        )
-
-    scaled_vals = scaler.fit_transform(X)
-    X_scaled = pd.DataFrame(scaled_vals, index=X.index, columns=X.columns)
-    return X_scaled, scaler
+        return StandardScaler()
+    if scaler_type == 'robust':
+        return RobustScaler()
+    raise ValueError(f"Unsupported scaler_type: {scaler_type}. Use 'standard' or 'robust'.")
 
 
 class DataFrameScaler(BaseEstimator, TransformerMixin):
@@ -56,24 +49,60 @@ class DataFrameScaler(BaseEstimator, TransformerMixin):
     Scikit-learn compatible scaler that preserves pandas DataFrame columns and index.
     """
 
-    def __init__(self, scaler_type: str = 'standard'):
+    def __init__(self, scaler_type: str = DEFAULT_SCALER_TYPE):
+        """
+        Sets up the scaler's settings. Nothing is learned from data yet.
+
+        Parameters
+        ----------
+        scaler_type : str
+            Which scaling method to use ('standard' or 'robust').
+        """
         self.scaler_type = scaler_type
-        self.scaler_: StandardScaler | RobustScaler | None = None
 
     def fit(self, X: pd.DataFrame, y: Any = None) -> DataFrameScaler:
-        if self.scaler_type == 'standard':
-            self.scaler_ = StandardScaler()
-        elif self.scaler_type == 'robust':
-            self.scaler_ = RobustScaler()
-        else:
-            raise ValueError(
-                f"Unsupported scaler_type: {self.scaler_type}. Use 'standard' or 'robust'."
-            )
-        self.scaler_.fit(X)
+        """
+        Learns the average and spread of each column so they can be put on the same scale.
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+            Player performance data to learn from.
+        y : Any
+            Not used. Only here so this works inside scikit-learn tools.
+
+        Returns
+        -------
+        DataFrameScaler
+            This same scaler, now holding what it learned.
+
+        Raises
+        ------
+        ValueError
+            If scaler_type is not 'standard' or 'robust'.
+        """
+        self.scaler_ = build_scaler(self.scaler_type).fit(X)
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        if self.scaler_ is None:
-            raise RuntimeError("DataFrameScaler must be fitted before calling transform.")
+        """
+        Puts every column on the same scale using what was learned in fit.
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+            Player performance data to scale.
+
+        Returns
+        -------
+        pd.DataFrame
+            Scaled data, keeping the original row labels and column names.
+
+        Raises
+        ------
+        NotFittedError
+            If called before fit.
+        """
+        check_is_fitted(self)
         scaled_vals = self.scaler_.transform(X)
         return pd.DataFrame(scaled_vals, index=X.index, columns=X.columns)

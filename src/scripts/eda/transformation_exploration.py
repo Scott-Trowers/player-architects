@@ -39,6 +39,7 @@ def classify_skewness(X: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, int]]:
         'Abs_Skewness': abs_skewness.values,
     }).sort_values('Abs_Skewness', ascending=False).reset_index(drop=True)
 
+    # ASSUMPTION: common rule-of-thumb skew bands, |skew| > 1.0 being the transformation cut-off
     counts = {
         'symmetric': int((abs_skewness <= 0.5).sum()),
         'moderate': int(((abs_skewness > 0.5) & (abs_skewness <= 1.0)).sum()),

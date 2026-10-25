@@ -5,7 +5,8 @@ Reproduces the transformation, zero-inflation handling, column retirement, and s
 pipeline developed in notebooks/season2122_transformation_and_scaling.ipynb.
 
 Produces three artefacts in the destination directory:
-    - player_features_scaled.csv: Standardised numeric performance feature matrix for modelling.
+    - player_features_scaled.csv: player_identifier plus the standardised numeric performance
+      feature matrix for modelling.
     - player_metadata.csv: Descriptive identity, context, and retired feature matrix.
     - player_featureset_preprocessed.csv: Combined metadata and scaled features.
 
@@ -28,6 +29,7 @@ DEFAULT_INPUT_CSV = PROCESSED_DATA_DIR / 'player_featureset.csv'
 
 
 def main():
+    """Reads the player featureset, prepares it for modelling, and saves the results as CSVs."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         '--input-csv',
@@ -64,8 +66,9 @@ def main():
     metadata_path = args.output_dir / 'player_metadata.csv'
     combined_path = args.output_dir / 'player_featureset_preprocessed.csv'
 
-    artifacts.X_scaled.to_csv(scaled_path, index=False)
-    print(f"Wrote scaled features ({artifacts.X_scaled.shape[0]} players, {artifacts.X_scaled.shape[1]} columns) to {scaled_path}")
+    scaled_with_id = artifacts.X_scaled_with_id
+    scaled_with_id.to_csv(scaled_path, index=False)
+    print(f"Wrote scaled features ({scaled_with_id.shape[0]} players, {scaled_with_id.shape[1]} columns) to {scaled_path}")
 
     artifacts.metadata_df.to_csv(metadata_path, index=False)
     print(f"Wrote metadata ({artifacts.metadata_df.shape[0]} players, {artifacts.metadata_df.shape[1]} columns) to {metadata_path}")
