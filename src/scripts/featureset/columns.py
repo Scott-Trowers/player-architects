@@ -14,6 +14,7 @@ no-op prune call.
 
 from scripts.prune_featureset import prune_features
 
+# one column per top-5 league, built in aggregate.aggregate_players from the Comp values
 LEAGUE_PCT_MINS_COLS = [
     'Premier League_pct_mins',
     'Ligue 1_pct_mins',
@@ -22,6 +23,8 @@ LEAGUE_PCT_MINS_COLS = [
     'La Liga_pct_mins',
 ]
 
+# ASSUMPTION: these describe who the player is rather than how they play, so they're kept in
+# the featureset for post-modelling analysis and dashboard filtering but never clustered on
 DESCRIPTIVE_COLS = [
     'player_identifier',
     'Player',
@@ -52,7 +55,7 @@ CHANCE_CREATION_PRUNE = []
 
 # Already cut down to the columns that indicate set-piece success/volume, rather than
 # just being entrusted with them (see docs/eda-findings.md).
-SET_PIECES_COLS = ['ShoFK_p90', 'ShoPK_p90', 'CK_p90', 'GcaPassDead_p90']
+SET_PIECES_COLS = ['ShoFK_p90', 'ShoPK_p90', 'CK_p90', 'GcaPassDead_p90', 'ScaPassDead_p90']
 SET_PIECES_PRUNE = []
 
 PASSING_COLS = [
