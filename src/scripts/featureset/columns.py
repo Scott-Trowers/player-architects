@@ -26,8 +26,17 @@ LEAGUE_PCT_MINS_COLS = [
 # ASSUMPTION: these describe who the player is rather than how they play, so they're kept in
 # the featureset for post-modelling analysis and dashboard filtering but never clustered on
 DESCRIPTIVE_COLS = [
-    'player_identifier', 'Player', 'Nation', 'Age', 'Pos', 'Primary_Pos', 'Num_Pos',
-    'Squad', 'Comp', 'passing_foot_pref', 'signed_preference_score',
+    'player_identifier',
+    'Player',
+    'Nation',
+    'Age',
+    'Pos',
+    'Primary_Pos',
+    'Num_Pos',
+    'Squad',
+    'Comp',
+    'passing_foot_pref',
+    'signed_preference_score',
     *LEAGUE_PCT_MINS_COLS,
 ]
 
