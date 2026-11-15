@@ -42,11 +42,13 @@ Milestones:
     - Check scaling
   - Combined EDA (check for relationships between Qualitative and Quantitative data)
 3. Cluster Analysis
-  - Dimension Reduction (possibly on manually selected metric groups)
+  - Stringent Feature Pruning (Pure Metric Selection):
+    - Exploration of dimensionality reduction (Global and Grouped PCA/FA) revealed critical limitations: synthetic components introduce "fluff", obscure clear labeling, and distort archetype signatures (e.g. possession-biased defensive scores penalizing elite defenders like Van Dijk, volume/success trade-offs misclassifying elite dribblers like Vinicius Jr).
+    - Pivot to pure, stringent feature pruning: curate a compact, highly interpretable subset of domain-validated metrics (~20–30 features) directly from the scaled dataset, strictly preserving real-world tactical semantics without composite linear distortions.
   - Clustering
     - Baseline: K-means
-    - Additional: GMM, Heirarchical, HDBSCAN, possibly Spectral
-    - Validation and Interpretation (can compare to reduced and original dimensions)
+    - Additional: GMM, Hierarchical, HDBSCAN, possibly Spectral
+    - Validation and Interpretation (evaluated directly on the pruned, domain-interpretable metrics)
     - Enrichment & Analysis (visualisation, compare to qualitative features, identify high-profile players)
   - If clusters form too strongly on position, may need to split the data up around this and re-perform.
 4. Player Profile Matching
